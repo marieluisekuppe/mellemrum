@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const headers = {
   apikey: import.meta.env.VITE_SUPABASE_APIKEY,
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
 };
 
 export default function EventPage() {
@@ -12,10 +12,13 @@ export default function EventPage() {
   const [event, setEvent] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [submissionState, setSubmissionState] = useState("idle");
 
   useEffect(() => {
     async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, { headers });
+      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
+        headers,
+      });
       const data = await response.json();
       setEvent(data[0]);
     }
@@ -25,7 +28,31 @@ export default function EventPage() {
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
-    console.log({ name, email, event: event.title });
+    setSubmissionState("submitting");
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/registrations`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          name,
+          email,
+          eventTitle: event.title,
+          eventDate: event.date,
+          eventLocation: event.venueName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Registration could not be saved");
+      }
+
+      setName("");
+      setEmail("");
+      setSubmissionState("success");
+    } catch {
+      setSubmissionState("error");
+    }
   }
 
   if (!event) {
@@ -50,15 +77,24 @@ export default function EventPage() {
             <div className="detail-list">
               <p>
                 <strong>Dato</strong>
-                {date.toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })} kl.{" "}
-                {date.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                {date.toLocaleDateString("da-DK", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}{" "}
+                kl.{" "}
+                {date.toLocaleTimeString("da-DK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
               <p>
                 <strong>Sted</strong>
                 <span>
                   {event.venueName}
                   <br />
-                  {event.venueAddress}, {event.venuePostalCode} {event.venueCity}
+                  {event.venueAddress}, {event.venuePostalCode}{" "}
+                  {event.venueCity}
                   {event.venueWebsite && (
                     <>
                       <br />
@@ -80,21 +116,43 @@ export default function EventPage() {
           <div>
             <p className="eyebrow dark">Tilmelding</p>
             <h2>Reserver din plads</h2>
-            <p>Udfyld formularen, så sender vi din tilmelding til arrangøren.</p>
+            <p>
+              Udfyld formularen, så sender vi din tilmelding til arrangøren.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <label>
-              Navn
-              <input value={name} onChange={(inputEvent) => setName(inputEvent.target.value)} />
-            </label>
+            <span>Navn</span>
+            <input
+              required
+              name="name"
+              value={name}
+              onChange={(inputEvent) => setName(inputEvent.target.value)}
+              placeholder="Dit navn"
+            />
+
             <span>E-mail</span>
             <input
+              required
+              name="email"
+              type="email"
               value={email}
               onChange={(inputEvent) => setEmail(inputEvent.target.value)}
               placeholder="dig@example.com"
             />
-            <button type="submit">Tilmeld mig</button>
+            <button type="submit" disabled={submissionState === "submitting"}>
+              {submissionState === "submitting" ? "Sender..." : "Tilmeld mig"}
+            </button>
+            {submissionState === "success" && (
+              <p className="form-message" role="status">
+                Tak for din tilmelding.
+              </p>
+            )}
+            {submissionState === "error" && (
+              <p className="form-message" role="alert">
+                Din tilmelding kunne ikke gemmes. Prøv igen.
+              </p>
+            )}
           </form>
         </section>
       </main>
