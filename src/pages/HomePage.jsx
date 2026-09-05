@@ -14,7 +14,10 @@ export default function HomePage() {
 
   useEffect(() => {
     async function getEvents() {
-      const response = await fetch(`${SUPABASE_URL}/events?order=date.asc`, { headers });
+      const response = await fetch(
+        `${SUPABASE_URL}/events?select=*,venue:venues(*)&order=date.asc`,
+        { headers }
+      );
       const data = await response.json();
       setEvents(data);
     }
@@ -25,7 +28,7 @@ export default function HomePage() {
   const categories = ["Alle", ...new Set(events.map((event) => event.category))];
 
   const filteredEvents = events.filter((event) => {
-    const searchText = `${event.title} ${event.summary} ${event.venueName}`.toLowerCase();
+    const searchText = `${event.title} ${event.summary} ${event.venue?.venueName ?? ""}`.toLowerCase();
     const matchesSearch = searchText.includes(search.toLowerCase());
     const matchesCategory = category === "Alle" || event.category === category;
 
@@ -95,7 +98,7 @@ export default function HomePage() {
                 <p>{event.summary}</p>
                 <div className="event-meta">
                   <span>{formatEventDate(event.date)}</span>
-                  <span>{event.venueName}</span>
+                  <span>{event.venue?.venueName}</span>
                 </div>
                 <Link className="card-link" to={`/events/${event.id}`}>
                   Læs mere

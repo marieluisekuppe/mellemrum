@@ -16,9 +16,10 @@ export default function EventPage() {
 
   useEffect(() => {
     async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
-      });
+      const response = await fetch(
+        `${SUPABASE_URL}/events?select=*,venue:venues(*)&id=eq.${eventId}`,
+        { headers },
+      );
       const data = await response.json();
       setEvent(data[0]);
     }
@@ -39,7 +40,7 @@ export default function EventPage() {
           email,
           eventTitle: event.title,
           eventDate: event.date,
-          eventLocation: event.venueName,
+          eventLocation: event.venue.venueName,
         }),
       });
 
@@ -91,14 +92,14 @@ export default function EventPage() {
               <p>
                 <strong>Sted</strong>
                 <span>
-                  {event.venueName}
+                  {event.venue.venueName}
                   <br />
-                  {event.venueAddress}, {event.venuePostalCode}{" "}
-                  {event.venueCity}
-                  {event.venueWebsite && (
+                  {event.venue.venueAddress}, {event.venue.venuePostCode}{" "}
+                  {event.venue.venueCity}
+                  {event.venue.venueWebsite && (
                     <>
                       <br />
-                      <a href={event.venueWebsite}>Besøg venue</a>
+                      <a href={event.venue.venueWebsite}>Besøg hjemmeside</a>
                     </>
                   )}
                 </span>
