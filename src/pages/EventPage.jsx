@@ -12,7 +12,7 @@ export default function EventPage() {
   const [event, setEvent] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [submissionState, setSubmissionState] = useState("idle");
+  const [submissionState, setSubmissionState] = useState("");
 
   useEffect(() => {
     async function getEvent() {

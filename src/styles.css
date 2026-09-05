@@ -665,6 +665,7 @@ select:focus {
   margin-top: 0.7rem;
   min-height: 50px;
   padding: 0.8rem 1.1rem;
+  border-radius: 8px;
 }
 
 .signup-panel button:disabled {
